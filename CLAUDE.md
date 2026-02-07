@@ -29,6 +29,13 @@ Container tree is a flat `Map<string, ContainerNode>` with parent/children ID re
 ### Mode switching
 `body.mode-layout` / `body.mode-preview` CSS classes toggle visual helpers. Layout mode adds green outlines and enforces 2px min margin/padding on containers. Preview mode hides all helpers, deselects, and disables pointer events.
 
+### Persistence
+Two layers: **file-based** (explicit Save/Open) and **localStorage** (background session backup).
+
+- Save exports the active element as a standalone HTML file via `src/serializer.ts`. The file contains a `<script type="application/json" id="ref-layout-data">` tag with the full serialized element (Maps as `[key, value][]` arrays), plus CSS/HTML for visual preview.
+- Open reads an HTML file, parses the JSON metadata, and imports it as a new element via `state.importElement()`.
+- localStorage auto-saves on a 500ms debounce after any mutation event. The dirty flag only clears on explicit file Save, not on localStorage writes.
+
 ### Container tree rendering
 `ContainerTree` (`src/container-tree.ts`) reconciles the state tree into DOM. On changes it rebuilds the element tree under `#page`, applying flex styles and layout-mode helpers.
 
@@ -52,6 +59,7 @@ src/
   sidebar.ts                Flex property editors for selected container
   css-class-manager.ts      Dynamic <style> for layout classes
   mode-manager.ts           Mode switching, layout helper toggling
+  serializer.ts             Export element → HTML file, import HTML file → element data
   context-menu.ts           Right-click: add child/sibling, remove container
 ```
 
@@ -66,3 +74,5 @@ src/
 - Layout mode: green outlines, 2px min margin/padding for clickability
 - Preview mode: clean print-ready view, no outlines, nothing selectable
 - Print styles hide chrome
+- File-based Save/Open: Save downloads active element as standalone HTML (with embedded JSON metadata for round-tripping); Open imports an HTML file as a new element
+- localStorage auto-save: debounced 500ms background session backup on every mutation (dirty flag only clears on explicit file Save)
