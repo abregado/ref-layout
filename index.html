@@ -14,25 +14,18 @@
     <!-- Toolbar -->
     <div id="toolbar">
       <div class="toolbar-group">
-        <label>
-          Size
-          <select id="tb-page-size">
-            <option value="a4" selected>A4</option>
-            <option value="letter">Letter</option>
-          </select>
+        <label>Element
+          <select id="tb-element-select"></select>
         </label>
-        <label>
-          Orientation
-          <select id="tb-orientation">
-            <option value="portrait" selected>Portrait</option>
-            <option value="landscape">Landscape</option>
-          </select>
-        </label>
-        <label>
-          Margin
-          <input id="tb-margin" type="number" min="0" max="25" value="5" step="1" style="width:50px">
-          <span>mm</span>
-        </label>
+        <button id="tb-element-new">New</button>
+        <button id="tb-element-save">Save</button>
+        <button id="tb-element-rename">Rename</button>
+        <button id="tb-element-delete">Delete</button>
+      </div>
+      <div class="toolbar-separator"></div>
+      <div class="toolbar-group">
+        <label>W <input id="tb-width" type="number" min="10" max="500" value="210" step="1" style="width:55px"> mm</label>
+        <label>H <input id="tb-height" type="number" min="10" max="500" value="297" step="1" style="width:55px"> mm</label>
       </div>
       <div class="toolbar-separator"></div>
       <div class="toolbar-group">

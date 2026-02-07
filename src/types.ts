@@ -1,20 +1,6 @@
-// ── Page configuration ──────────────────────────────────────────────
+// ── Edit mode ───────────────────────────────────────────────────────
 
-export type PageSize = 'a4' | 'letter';
-export type PageOrientation = 'portrait' | 'landscape';
 export type EditMode = 'layout' | 'preview';
-
-export interface PageConfig {
-  size: PageSize;
-  orientation: PageOrientation;
-  marginMm: number; // uniform margin in mm
-}
-
-// Real dimensions in mm
-export const PAGE_DIMENSIONS: Record<PageSize, { widthMm: number; heightMm: number }> = {
-  a4: { widthMm: 210, heightMm: 297 },
-  letter: { widthMm: 215.9, heightMm: 279.4 },
-};
 
 // 96 DPI: 1 inch = 25.4 mm → 1 mm ≈ 3.7795px
 export const MM_TO_PX = 96 / 25.4;
@@ -77,22 +63,35 @@ export interface ContainerNode {
   item: FlexItemProps;
 }
 
+// ── Element template ────────────────────────────────────────────────
+
+export interface ElementTemplate {
+  id: string;
+  name: string;
+  widthMm: number;
+  heightMm: number;
+  containers: Map<string, ContainerNode>;
+  rootContainerId: string;
+  layoutClasses: Map<string, LayoutClass>;
+  nextContainerId: number;
+}
+
 // ── App state ───────────────────────────────────────────────────────
 
 export interface AppState {
-  page: PageConfig;
+  elements: Map<string, ElementTemplate>;
+  activeElementId: string | null;
   mode: EditMode;
-  containers: Map<string, ContainerNode>;
-  rootContainerId: string;
   selectedContainerId: string | null;
-  layoutClasses: Map<string, LayoutClass>;
-  nextContainerId: number;
+  nextElementId: number;
 }
 
 // ── Events ──────────────────────────────────────────────────────────
 
 export interface AppEvents {
-  pageConfigChanged: PageConfig;
+  elementDimensionsChanged: { widthMm: number; heightMm: number };
+  activeElementChanged: ElementTemplate | null;
+  elementListChanged: void;
   modeChanged: EditMode;
   containerAdded: ContainerNode;
   containerRemoved: { id: string; parentId: string | null };

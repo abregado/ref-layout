@@ -11,6 +11,7 @@ export class CssClassManager {
 
     this.state.on('layoutClassChanged', () => this.rebuild());
     this.state.on('layoutClassRemoved', () => this.rebuild());
+    this.state.on('activeElementChanged', () => this.rebuild());
 
     this.rebuild();
   }

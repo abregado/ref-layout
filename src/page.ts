@@ -1,5 +1,5 @@
 import { AppStateManager } from './state.js';
-import { PAGE_DIMENSIONS, MM_TO_PX } from './types.js';
+import { MM_TO_PX } from './types.js';
 
 const VISUAL_MARGIN = 20; // px margin around page in workspace
 
@@ -14,7 +14,8 @@ export class PageManager {
     this.scaler = document.getElementById('page-scaler')!;
     this.page = document.getElementById('page')!;
 
-    this.state.on('pageConfigChanged', () => this.update());
+    this.state.on('elementDimensionsChanged', () => this.update());
+    this.state.on('activeElementChanged', () => this.update());
 
     this.resizeObserver = new ResizeObserver(() => this.update());
     this.resizeObserver.observe(this.workspace);
@@ -27,24 +28,16 @@ export class PageManager {
   }
 
   update(): void {
-    const config = this.state.getPage();
-    const dims = PAGE_DIMENSIONS[config.size];
+    const el = this.state.getActiveElement();
+    if (!el) return;
 
-    // Swap for landscape
-    let wMm = dims.widthMm;
-    let hMm = dims.heightMm;
-    if (config.orientation === 'landscape') {
-      [wMm, hMm] = [hMm, wMm];
-    }
+    const pageW = Math.round(el.widthMm * MM_TO_PX);
+    const pageH = Math.round(el.heightMm * MM_TO_PX);
 
-    const pageW = Math.round(wMm * MM_TO_PX);
-    const pageH = Math.round(hMm * MM_TO_PX);
-    const marginPx = Math.round(config.marginMm * MM_TO_PX);
-
-    // Set page real size
+    // Set page real size, no padding
     this.page.style.width = `${pageW}px`;
     this.page.style.height = `${pageH}px`;
-    this.page.style.padding = `${marginPx}px`;
+    this.page.style.padding = '0';
 
     // Compute scale to fit workspace
     const wsRect = this.workspace.getBoundingClientRect();

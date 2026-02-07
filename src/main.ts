@@ -10,6 +10,13 @@ import { ContextMenu } from './context-menu.js';
 
 function main(): void {
   const state = new AppStateManager();
+
+  // Load saved elements or create a default one
+  if (!state.loadFromLocalStorage()) {
+    state.newElement('Untitled');
+    state.clearDirty();
+  }
+
   const pageManager = new PageManager(state);
   const pageEl = pageManager.getPageElement();
 

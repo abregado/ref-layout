@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx tsc)",
       "Bash(npm install:*)",
-      "Bash(del D:reposref-layoutsrcindex.ts)"
+      "Bash(del D:reposref-layoutsrcindex.ts)",
+      "Bash(npm run build:*)"
     ]
   }
 }

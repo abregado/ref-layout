@@ -79,6 +79,15 @@
   border-color: #0078d4;
 }
 
+#toolbar button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#tb-element-select {
+  min-width: 120px;
+}
+
 /* ── Main area (workspace + sidebar) ──────────────────────────────── */
 
 #main {
