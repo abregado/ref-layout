@@ -1,0 +1,27 @@
+/* ── Layout mode visual helpers ────────────────────────────────────── */
+
+/* Green borders on containers in layout mode */
+body.mode-layout .flex-container {
+  outline: 1px solid #4caf50;
+  outline-offset: -1px;
+}
+
+/* Selection highlight */
+body.mode-layout .flex-container.selected {
+  outline: 2px solid #0078d4;
+  outline-offset: -2px;
+}
+
+/* ── Preview mode ─────────────────────────────────────────────────── */
+
+body.mode-preview .flex-container {
+  outline: none;
+}
+
+body.mode-preview #sidebar {
+  display: none !important;
+}
+
+body.mode-preview .flex-container {
+  pointer-events: none;
+}

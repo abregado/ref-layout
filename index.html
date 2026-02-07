@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ref Layout</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/page.css">
+  <link rel="stylesheet" href="css/layout-mode.css">
+</head>
+<body class="mode-layout">
+  <div id="app">
+    <!-- Toolbar -->
+    <div id="toolbar">
+      <div class="toolbar-group">
+        <label>
+          Size
+          <select id="tb-page-size">
+            <option value="a4" selected>A4</option>
+            <option value="letter">Letter</option>
+          </select>
+        </label>
+        <label>
+          Orientation
+          <select id="tb-orientation">
+            <option value="portrait" selected>Portrait</option>
+            <option value="landscape">Landscape</option>
+          </select>
+        </label>
+        <label>
+          Margin
+          <input id="tb-margin" type="number" min="0" max="25" value="5" step="1" style="width:50px">
+          <span>mm</span>
+        </label>
+      </div>
+      <div class="toolbar-separator"></div>
+      <div class="toolbar-group">
+        <button id="tb-mode-layout" class="active">Layout</button>
+        <button id="tb-mode-preview">Preview</button>
+      </div>
+    </div>
+
+    <!-- Main area -->
+    <div id="main">
+      <div id="workspace">
+        <div id="page-scaler">
+          <div id="page"></div>
+        </div>
+      </div>
+      <div id="sidebar"></div>
+    </div>
+  </div>
+
+  <!-- Context menu (hidden by default) -->
+  <div id="context-menu" style="display:none; position:fixed; z-index:1000;"></div>
+
+  <script type="module" src="dist/main.js"></script>
+</body>
+</html>
