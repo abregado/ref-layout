@@ -32,6 +32,21 @@ function main(): void {
   state.on('selectionChanged', () => {
     requestAnimationFrame(() => pageManager.update());
   });
+
+  // Debounced localStorage auto-save
+  let saveTimer: number;
+  const autoSave = () => {
+    clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(() => state.saveToLocalStorage(), 500);
+  };
+  const autoSaveEvents = [
+    'containerAdded', 'containerRemoved', 'containerUpdated',
+    'layoutClassChanged', 'layoutClassRemoved', 'elementDimensionsChanged',
+    'elementListChanged', 'activeElementChanged', 'treeChanged',
+  ] as const;
+  for (const event of autoSaveEvents) {
+    state.on(event, autoSave);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', main);

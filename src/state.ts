@@ -152,6 +152,39 @@ export class AppStateManager {
     this.emit('elementListChanged', undefined as any);
   }
 
+  importElement(data: {
+    name: string;
+    widthMm: number;
+    heightMm: number;
+    containers: Map<string, ContainerNode>;
+    rootContainerId: string;
+    layoutClasses: Map<string, LayoutClass>;
+    nextContainerId: number;
+  }): ElementTemplate {
+    const id = `el-${this.state.nextElementId++}`;
+    const element: ElementTemplate = {
+      id,
+      name: data.name,
+      widthMm: data.widthMm,
+      heightMm: data.heightMm,
+      containers: data.containers,
+      rootContainerId: data.rootContainerId,
+      layoutClasses: data.layoutClasses,
+      nextContainerId: data.nextContainerId,
+    };
+
+    this.state.elements.set(id, element);
+    this.state.activeElementId = id;
+    this.state.selectedContainerId = null;
+    this.dirty = true;
+
+    this.emit('elementListChanged', undefined as any);
+    this.emit('activeElementChanged', this.getActiveElement());
+    this.emit('selectionChanged', null);
+    this.emit('treeChanged', undefined as any);
+    return this.getActiveElement()!;
+  }
+
   getActiveElement(): ElementTemplate | null {
     if (!this.state.activeElementId) return null;
     const el = this.state.elements.get(this.state.activeElementId);
@@ -199,7 +232,6 @@ export class AppStateManager {
       })),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    this.dirty = false;
   }
 
   loadFromLocalStorage(): boolean {

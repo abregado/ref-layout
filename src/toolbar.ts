@@ -1,26 +1,31 @@
 import { AppStateManager } from './state.js';
+import { exportElementToHtml, importElementFromHtml } from './serializer.js';
 
 export class Toolbar {
   private elementSelect: HTMLSelectElement;
   private widthInput: HTMLInputElement;
   private heightInput: HTMLInputElement;
   private newBtn: HTMLButtonElement;
+  private openBtn: HTMLButtonElement;
   private saveBtn: HTMLButtonElement;
   private renameBtn: HTMLButtonElement;
   private deleteBtn: HTMLButtonElement;
   private layoutBtn: HTMLButtonElement;
   private previewBtn: HTMLButtonElement;
+  private fileInput: HTMLInputElement;
 
   constructor(private state: AppStateManager) {
     this.elementSelect = document.getElementById('tb-element-select') as HTMLSelectElement;
     this.widthInput = document.getElementById('tb-width') as HTMLInputElement;
     this.heightInput = document.getElementById('tb-height') as HTMLInputElement;
     this.newBtn = document.getElementById('tb-element-new') as HTMLButtonElement;
+    this.openBtn = document.getElementById('tb-element-open') as HTMLButtonElement;
     this.saveBtn = document.getElementById('tb-element-save') as HTMLButtonElement;
     this.renameBtn = document.getElementById('tb-element-rename') as HTMLButtonElement;
     this.deleteBtn = document.getElementById('tb-element-delete') as HTMLButtonElement;
     this.layoutBtn = document.getElementById('tb-mode-layout') as HTMLButtonElement;
     this.previewBtn = document.getElementById('tb-mode-preview') as HTMLButtonElement;
+    this.fileInput = document.getElementById('file-input') as HTMLInputElement;
 
     this.bindEvents();
     this.syncFromState();
@@ -72,7 +77,39 @@ export class Toolbar {
     });
 
     this.saveBtn.addEventListener('click', () => {
-      this.state.saveToLocalStorage();
+      const el = this.state.getActiveElement();
+      if (!el) return;
+      const html = exportElementToHtml(el);
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${el.name}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.state.clearDirty();
+    });
+
+    this.openBtn.addEventListener('click', () => {
+      this.fileInput.click();
+    });
+
+    this.fileInput.addEventListener('change', () => {
+      const file = this.fileInput.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = importElementFromHtml(reader.result as string);
+          this.state.importElement(data);
+        } catch (e) {
+          alert(`Failed to open file: ${e instanceof Error ? e.message : e}`);
+        }
+      };
+      reader.readAsText(file);
+      this.fileInput.value = '';
     });
 
     this.renameBtn.addEventListener('click', () => {
