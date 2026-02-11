@@ -2,14 +2,12 @@
 
 The project uses typescript, html and css flexbox to let the user divide up the screen. 
 
-The main view is of a A4 or Letter page. 
-
-
+## Main View
+The view shows whichever layout element is currently being worked on.
 
 ## Layout mode
 ### A toolbar at the top has a number of options:
-* change page dimensions (a4/letter and portrait/landscape)
-* add margin to the page
+* modify dimensions for displaying the currently edited element
 * toggle between edit modes (layout, styling, content, preview)
 
 ### other functionality
