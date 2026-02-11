@@ -27,7 +27,7 @@ Container tree is a flat `Map<string, ContainerNode>` with parent/children ID re
 - Assigning a class copies current inline props into the class; unassigning copies class props back to inline
 
 ### Mode switching
-`body.mode-layout` / `body.mode-preview` CSS classes toggle visual helpers. Layout mode adds green outlines and enforces 2px min margin/padding on containers. Preview mode hides all helpers, deselects, and disables pointer events.
+`body.mode-layout` / `body.mode-content` / `body.mode-preview` CSS classes toggle visual helpers. Layout mode adds green outlines and enforces 2px min margin/padding on containers. Content mode highlights only eligible (leaf) containers with green outlines and allows adding/removing content elements via right-click. Preview mode hides all helpers, deselects, and disables pointer events.
 
 ### Persistence
 Two layers: **file-based** (explicit Save/Open) and **localStorage** (background session backup).
@@ -60,10 +60,10 @@ src/
   css-class-manager.ts      Dynamic <style> for layout classes
   mode-manager.ts           Mode switching, layout helper toggling
   serializer.ts             Export element → HTML file, import HTML file → element data
-  context-menu.ts           Right-click: add child/sibling, remove container
+  context-menu.ts           Right-click: add child/sibling, remove container; content mode: add/delete content elements
 ```
 
-## Implemented features (Layout + Preview modes)
+## Implemented features (Layout + Content + Preview modes)
 
 - Scaled A4/Letter page, portrait/landscape toggle
 - Adjustable page margin (mm)
@@ -71,7 +71,8 @@ src/
 - Click-to-select containers with blue highlight
 - Sidebar with flex container props (direction, wrap, justify, align-items, align-content, gap) and flex item props (grow, shrink, basis, align-self)
 - Save container styles as a named CSS class; editing propagates to all users of that class
-- Layout mode: green outlines, 2px min margin/padding for clickability
+- Layout mode: green outlines, 2px min margin/padding for clickability; add child/sibling disabled on containers with content
+- Content mode: only leaf containers (no child containers) are eligible; right-click to add content elements (heading, text, table, list); right-click content element to delete
 - Preview mode: clean print-ready view, no outlines, nothing selectable
 - Print styles hide chrome
 - File-based Save/Open: Save downloads active element as standalone HTML (with embedded JSON metadata for round-tripping); Open imports an HTML file as a new element

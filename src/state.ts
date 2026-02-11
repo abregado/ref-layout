@@ -3,6 +3,8 @@ import {
   AppEvents,
   AppEventName,
   ContainerNode,
+  ContentElement,
+  ContentElementType,
   EditMode,
   ElementTemplate,
   FlexContainerProps,
@@ -60,13 +62,13 @@ export class AppStateManager {
   getMode(): EditMode { return this.state.mode; }
   getContainer(id: string): ContainerNode | undefined {
     const c = this.active().containers.get(id);
-    return c ? { ...c, childrenIds: [...c.childrenIds], container: { ...c.container }, item: { ...c.item } } : undefined;
+    return c ? { ...c, childrenIds: [...c.childrenIds], container: { ...c.container }, item: { ...c.item }, contentElements: [...(c.contentElements || [])] } : undefined;
   }
   getRootId(): string { return this.active().rootContainerId; }
   getSelectedId(): string | null { return this.state.selectedContainerId; }
   getAllContainers(): ContainerNode[] {
     return Array.from(this.active().containers.values()).map(c => ({
-      ...c, childrenIds: [...c.childrenIds], container: { ...c.container }, item: { ...c.item },
+      ...c, childrenIds: [...c.childrenIds], container: { ...c.container }, item: { ...c.item }, contentElements: [...(c.contentElements || [])],
     }));
   }
   getLayoutClass(name: string): LayoutClass | undefined {
@@ -91,6 +93,7 @@ export class AppStateManager {
       className: null,
       container: defaultFlexContainerProps(),
       item: defaultFlexItemProps(),
+      contentElements: [],
     };
 
     const element: ElementTemplate = {
@@ -102,6 +105,7 @@ export class AppStateManager {
       rootContainerId: rootId,
       layoutClasses: new Map(),
       nextContainerId: 1,
+      nextContentElementId: 0,
     };
 
     this.state.elements.set(id, element);
@@ -160,6 +164,7 @@ export class AppStateManager {
     rootContainerId: string;
     layoutClasses: Map<string, LayoutClass>;
     nextContainerId: number;
+    nextContentElementId: number;
   }): ElementTemplate {
     const id = `el-${this.state.nextElementId++}`;
     const element: ElementTemplate = {
@@ -171,6 +176,7 @@ export class AppStateManager {
       rootContainerId: data.rootContainerId,
       layoutClasses: data.layoutClasses,
       nextContainerId: data.nextContainerId,
+      nextContentElementId: data.nextContentElementId ?? 0,
     };
 
     this.state.elements.set(id, element);
@@ -227,6 +233,7 @@ export class AppStateManager {
         heightMm: el.heightMm,
         rootContainerId: el.rootContainerId,
         nextContainerId: el.nextContainerId,
+        nextContentElementId: el.nextContentElementId ?? 0,
         containers: Array.from(el.containers.entries()),
         layoutClasses: Array.from(el.layoutClasses.entries()),
       })),
@@ -244,6 +251,11 @@ export class AppStateManager {
       this.state.elements.clear();
 
       for (const elData of data.elements) {
+        const containers = new Map<string, ContainerNode>(elData.containers);
+        // Backward compat: ensure all containers have contentElements
+        for (const node of containers.values()) {
+          if (!node.contentElements) node.contentElements = [];
+        }
         const element: ElementTemplate = {
           id: elData.id,
           name: elData.name,
@@ -251,7 +263,8 @@ export class AppStateManager {
           heightMm: elData.heightMm,
           rootContainerId: elData.rootContainerId,
           nextContainerId: elData.nextContainerId,
-          containers: new Map(elData.containers),
+          nextContentElementId: elData.nextContentElementId ?? 0,
+          containers,
           layoutClasses: new Map(elData.layoutClasses),
         };
         this.state.elements.set(element.id, element);
@@ -300,6 +313,7 @@ export class AppStateManager {
       className: null,
       container: defaultFlexContainerProps(),
       item: defaultFlexItemProps(),
+      contentElements: [],
     };
     el.containers.set(id, node);
 
@@ -425,6 +439,50 @@ export class AppStateManager {
     el.layoutClasses.delete(name);
     this.dirty = true;
     this.emit('layoutClassRemoved', name);
+  }
+
+  // ── Content element mutations ────────────────────────────────────
+
+  isLeafContainer(id: string): boolean {
+    const node = this.active().containers.get(id);
+    return !!node && node.childrenIds.length === 0;
+  }
+
+  hasContentElements(id: string): boolean {
+    const node = this.active().containers.get(id);
+    return !!node && (node.contentElements || []).length > 0;
+  }
+
+  addContentElement(containerId: string, type: ContentElementType): ContentElement | null {
+    const el = this.active();
+    const node = el.containers.get(containerId);
+    if (!node) return null;
+    if (node.childrenIds.length > 0) return null; // only leaf containers
+
+    const contentEl: ContentElement = {
+      id: `ce-${el.nextContentElementId++}`,
+      type,
+    };
+    if (!node.contentElements) node.contentElements = [];
+    node.contentElements.push(contentEl);
+    this.dirty = true;
+    this.emit('contentElementAdded', { containerId, element: { ...contentEl } });
+    this.emit('treeChanged', undefined as any);
+    return { ...contentEl };
+  }
+
+  removeContentElement(containerId: string, elementId: string): void {
+    const el = this.active();
+    const node = el.containers.get(containerId);
+    if (!node || !node.contentElements) return;
+
+    const idx = node.contentElements.findIndex(ce => ce.id === elementId);
+    if (idx === -1) return;
+
+    node.contentElements.splice(idx, 1);
+    this.dirty = true;
+    this.emit('contentElementRemoved', { containerId, elementId });
+    this.emit('treeChanged', undefined as any);
   }
 
   // Get effective props for a container (class or inline)

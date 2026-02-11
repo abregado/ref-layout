@@ -14,9 +14,24 @@ export class SelectionManager {
   }
 
   private handleClick(e: MouseEvent): void {
-    if (this.state.getMode() !== 'layout') return;
+    const mode = this.state.getMode();
+    if (mode !== 'layout' && mode !== 'content') return;
 
     const target = e.target as HTMLElement;
+
+    if (mode === 'content') {
+      // In content mode, only select eligible (leaf) containers
+      const container = target.closest('.flex-container.content-eligible') as HTMLElement | null;
+      if (container && container.dataset.containerId) {
+        e.stopPropagation();
+        this.state.setSelection(container.dataset.containerId);
+      } else {
+        this.state.setSelection(null);
+      }
+      return;
+    }
+
+    // Layout mode
     const container = target.closest('.flex-container') as HTMLElement | null;
 
     if (container && container.dataset.containerId) {

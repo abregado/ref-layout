@@ -12,6 +12,46 @@ body.mode-layout .flex-container.selected {
   outline-offset: -2px;
 }
 
+/* Content in containers uses overflow: hidden in layout mode */
+body.mode-layout .flex-container .content-element {
+  overflow: hidden;
+}
+
+/* ── Content mode ─────────────────────────────────────────────────── */
+
+/* Non-eligible containers (have children) get no outline */
+body.mode-content .flex-container {
+  outline: none;
+}
+
+/* Eligible containers (leaf, no children) get green outline */
+body.mode-content .flex-container.content-eligible {
+  outline: 1px solid #4caf50;
+  outline-offset: -1px;
+}
+
+/* Selected eligible container */
+body.mode-content .flex-container.content-eligible.selected {
+  outline: 2px solid #0078d4;
+  outline-offset: -2px;
+}
+
+/* Content elements */
+.content-element {
+  position: relative;
+  min-height: 1em;
+}
+
+body.mode-content .content-element {
+  outline: 1px dashed #999;
+  outline-offset: -1px;
+  cursor: context-menu;
+}
+
+body.mode-content #sidebar {
+  display: none !important;
+}
+
 /* ── Preview mode ─────────────────────────────────────────────────── */
 
 body.mode-preview .flex-container {

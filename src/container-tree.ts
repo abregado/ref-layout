@@ -1,5 +1,5 @@
 import { AppStateManager } from './state.js';
-import { ContainerNode, FlexContainerProps, FlexItemProps } from './types.js';
+import { ContainerNode, ContentElement, FlexContainerProps, FlexItemProps } from './types.js';
 
 export class ContainerTree {
   private pageEl: HTMLElement;
@@ -13,6 +13,8 @@ export class ContainerTree {
     this.state.on('containerUpdated', (node) => this.updateElement(node));
     this.state.on('treeChanged', () => this.reconcile());
     this.state.on('layoutClassChanged', (lc) => this.applyClassToContainers(lc.name));
+    this.state.on('contentElementAdded', () => this.reconcile());
+    this.state.on('contentElementRemoved', () => this.reconcile());
 
     this.reconcile();
   }
@@ -61,6 +63,58 @@ export class ContainerTree {
       }
     }
 
+    // Render content elements in leaf containers
+    if (node.childrenIds.length === 0 && node.contentElements && node.contentElements.length > 0) {
+      for (const ce of node.contentElements) {
+        el.appendChild(this.buildContentElement(ce));
+      }
+    }
+
+    return el;
+  }
+
+  private buildContentElement(ce: ContentElement): HTMLElement {
+    let el: HTMLElement;
+    switch (ce.type) {
+      case 'heading':
+        el = document.createElement('h3');
+        el.textContent = 'Heading';
+        break;
+      case 'text':
+        el = document.createElement('p');
+        el.textContent = 'Text content';
+        break;
+      case 'table': {
+        const table = document.createElement('table');
+        for (let r = 0; r < 2; r++) {
+          const tr = document.createElement('tr');
+          for (let c = 0; c < 2; c++) {
+            const td = document.createElement(r === 0 ? 'th' : 'td');
+            td.textContent = r === 0 ? `Header ${c + 1}` : `Cell ${c + 1}`;
+            tr.appendChild(td);
+          }
+          table.appendChild(tr);
+        }
+        el = table;
+        break;
+      }
+      case 'list': {
+        const ul = document.createElement('ul');
+        for (let i = 0; i < 2; i++) {
+          const li = document.createElement('li');
+          li.textContent = `List item ${i + 1}`;
+          ul.appendChild(li);
+        }
+        el = ul;
+        break;
+      }
+      default:
+        el = document.createElement('div');
+        el.textContent = ce.type;
+    }
+    el.classList.add('content-element');
+    el.dataset.contentId = ce.id;
+    el.dataset.containerId = '';  // will be set via parent
     return el;
   }
 
@@ -91,8 +145,31 @@ export class ContainerTree {
 
   private applyLayoutModeHelpers(el: HTMLElement, node: ContainerNode): void {
     const mode = this.state.getMode();
+
+    // Always clear content-eligible marker first
+    el.classList.remove('content-eligible');
+
+    if (mode === 'content') {
+      // Content mode: eligible containers (leaf) get green border + min margin
+      const isLeaf = node.childrenIds.length === 0;
+      if (isLeaf) {
+        el.classList.add('content-eligible');
+        el.style.margin = '2px';
+        el.style.padding = '2px';
+        el.dataset.minMargin = '1';
+        el.dataset.minPadding = '1';
+      } else {
+        // Non-eligible: normal properties
+        el.style.margin = '';
+        el.style.padding = '';
+        el.removeAttribute('data-min-margin');
+        el.removeAttribute('data-min-padding');
+      }
+      return;
+    }
+
     if (mode !== 'layout') {
-      // Remove min helpers
+      // Preview mode: remove min helpers
       el.style.margin = '';
       el.style.padding = '';
       el.removeAttribute('data-min-margin');

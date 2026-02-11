@@ -13,15 +13,15 @@ export class ModeManager {
   }
 
   private applyMode(mode: string): void {
-    document.body.classList.remove('mode-layout', 'mode-preview');
+    document.body.classList.remove('mode-layout', 'mode-content', 'mode-preview');
     document.body.classList.add(`mode-${mode}`);
 
-    if (mode === 'preview') {
-      // Deselect everything in preview
+    if (mode === 'preview' || mode === 'content') {
+      // Deselect when switching modes
       this.state.setSelection(null);
     }
 
-    // Refresh layout helpers (add/remove min margins)
+    // Refresh layout helpers (add/remove min margins, content-eligible markers)
     this.containerTree.refreshLayoutHelpers();
 
     // Re-scale page since sidebar visibility may change

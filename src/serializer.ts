@@ -1,4 +1,4 @@
-import { ElementTemplate, ContainerNode, FlexContainerProps, FlexItemProps, LayoutClass } from './types.js';
+import { ElementTemplate, ContainerNode, ContentElement, FlexContainerProps, FlexItemProps, LayoutClass } from './types.js';
 
 interface SerializedElement {
   name: string;
@@ -6,6 +6,7 @@ interface SerializedElement {
   heightMm: number;
   rootContainerId: string;
   nextContainerId: number;
+  nextContentElementId: number;
   containers: [string, ContainerNode][];
   layoutClasses: [string, LayoutClass][];
 }
@@ -34,6 +35,21 @@ function flexItemCss(i: FlexItemProps): string {
   return css;
 }
 
+function buildContentElementHtml(ce: ContentElement, indent: string): string {
+  switch (ce.type) {
+    case 'heading':
+      return `${indent}<h3 class="content-element" data-content-id="${ce.id}">Heading</h3>`;
+    case 'text':
+      return `${indent}<p class="content-element" data-content-id="${ce.id}">Text content</p>`;
+    case 'table':
+      return `${indent}<table class="content-element" data-content-id="${ce.id}"><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Cell 1</td><td>Cell 2</td></tr></table>`;
+    case 'list':
+      return `${indent}<ul class="content-element" data-content-id="${ce.id}"><li>List item 1</li><li>List item 2</li></ul>`;
+    default:
+      return `${indent}<div class="content-element" data-content-id="${ce.id}">${ce.type}</div>`;
+  }
+}
+
 function buildHtmlTree(
   nodeId: string,
   containers: Map<string, ContainerNode>,
@@ -51,8 +67,18 @@ function buildHtmlTree(
 
   const classAttr = node.className ? ` class="layout-class-${node.className}"` : '';
 
-  if (node.childrenIds.length === 0) {
+  if (node.childrenIds.length === 0 && (!node.contentElements || node.contentElements.length === 0)) {
     return `${indent}<div data-container-id="${node.id}"${classAttr} style="${style}"></div>`;
+  }
+
+  if (node.childrenIds.length === 0 && node.contentElements && node.contentElements.length > 0) {
+    const lines: string[] = [];
+    lines.push(`${indent}<div data-container-id="${node.id}"${classAttr} style="${style}">`);
+    for (const ce of node.contentElements) {
+      lines.push(buildContentElementHtml(ce, indent + '  '));
+    }
+    lines.push(`${indent}</div>`);
+    return lines.join('\n');
   }
 
   const lines: string[] = [];
@@ -75,6 +101,7 @@ export function exportElementToHtml(element: ElementTemplate): string {
     heightMm: element.heightMm,
     rootContainerId: element.rootContainerId,
     nextContainerId: element.nextContainerId,
+    nextContentElementId: element.nextContentElementId ?? 0,
     containers: Array.from(element.containers.entries()),
     layoutClasses: Array.from(element.layoutClasses.entries()),
   };
@@ -137,6 +164,7 @@ export function importElementFromHtml(html: string): {
   rootContainerId: string;
   layoutClasses: Map<string, LayoutClass>;
   nextContainerId: number;
+  nextContentElementId: number;
 } {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -154,13 +182,20 @@ export function importElementFromHtml(html: string): {
     throw new Error('Not a valid ref-layout file: missing required fields');
   }
 
+  const containers = new Map<string, ContainerNode>(data.containers);
+  // Backward compat: ensure all containers have contentElements
+  for (const node of containers.values()) {
+    if (!node.contentElements) node.contentElements = [];
+  }
+
   return {
     name: data.name || 'Imported',
     widthMm: data.widthMm ?? 210,
     heightMm: data.heightMm ?? 297,
-    containers: new Map(data.containers),
+    containers,
     rootContainerId: data.rootContainerId,
     layoutClasses: new Map(data.layoutClasses || []),
     nextContainerId: data.nextContainerId ?? 1,
+    nextContentElementId: data.nextContentElementId ?? 0,
   };
 }

@@ -24,9 +24,13 @@ The main view is of a A4 or Letter page.
 * css containers can only have one class, and its class can only container css properties relating to flexbox layout.
 
 ## Content mode
-* flexbox container return to their normal padding/margin/border properies.
-* the user can select a flexbox container
-* the user can drag a txt file onto a flexbox container to import that file's text into a content element.
+* content eligible flexbox containers are those that do not contain flexbox containers
+* non-elibile flexbox containers return to their normal padding/margin/border properies.
+* eligible flexbox containers that do not contain flexbox containers are highlighted with the 1px green border and 2px margin.
+* the user can select any elegible flexbox containers
+* the user can right click an eligible container to add a content element from a right click menu
+* the user can right click a content element to delete it from a right click menu
+
 
 ## Styling mode
 * each content element can be selected.

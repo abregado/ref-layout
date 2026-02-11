@@ -11,6 +11,7 @@ export class Toolbar {
   private renameBtn: HTMLButtonElement;
   private deleteBtn: HTMLButtonElement;
   private layoutBtn: HTMLButtonElement;
+  private contentBtn: HTMLButtonElement;
   private previewBtn: HTMLButtonElement;
   private fileInput: HTMLInputElement;
 
@@ -24,6 +25,7 @@ export class Toolbar {
     this.renameBtn = document.getElementById('tb-element-rename') as HTMLButtonElement;
     this.deleteBtn = document.getElementById('tb-element-delete') as HTMLButtonElement;
     this.layoutBtn = document.getElementById('tb-mode-layout') as HTMLButtonElement;
+    this.contentBtn = document.getElementById('tb-mode-content') as HTMLButtonElement;
     this.previewBtn = document.getElementById('tb-mode-preview') as HTMLButtonElement;
     this.fileInput = document.getElementById('file-input') as HTMLInputElement;
 
@@ -130,6 +132,7 @@ export class Toolbar {
     });
 
     this.layoutBtn.addEventListener('click', () => this.state.setMode('layout'));
+    this.contentBtn.addEventListener('click', () => this.state.setMode('content'));
     this.previewBtn.addEventListener('click', () => this.state.setMode('preview'));
   }
 
@@ -169,6 +172,7 @@ export class Toolbar {
   private syncModeButtons(): void {
     const mode = this.state.getMode();
     this.layoutBtn.classList.toggle('active', mode === 'layout');
+    this.contentBtn.classList.toggle('active', mode === 'content');
     this.previewBtn.classList.toggle('active', mode === 'preview');
   }
 }

@@ -43,6 +43,7 @@ function main(): void {
     'containerAdded', 'containerRemoved', 'containerUpdated',
     'layoutClassChanged', 'layoutClassRemoved', 'elementDimensionsChanged',
     'elementListChanged', 'activeElementChanged', 'treeChanged',
+    'contentElementAdded', 'contentElementRemoved',
   ] as const;
   for (const event of autoSaveEvents) {
     state.on(event, autoSave);

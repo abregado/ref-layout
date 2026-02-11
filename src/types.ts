@@ -1,6 +1,6 @@
 // ── Edit mode ───────────────────────────────────────────────────────
 
-export type EditMode = 'layout' | 'preview';
+export type EditMode = 'layout' | 'content' | 'preview';
 
 // 96 DPI: 1 inch = 25.4 mm → 1 mm ≈ 3.7795px
 export const MM_TO_PX = 96 / 25.4;
@@ -43,6 +43,15 @@ export function defaultFlexItemProps(): FlexItemProps {
   };
 }
 
+// ── Content elements ─────────────────────────────────────────────────
+
+export type ContentElementType = 'heading' | 'text' | 'table' | 'list';
+
+export interface ContentElement {
+  id: string;
+  type: ContentElementType;
+}
+
 // ── Layout class ────────────────────────────────────────────────────
 
 export interface LayoutClass {
@@ -61,6 +70,7 @@ export interface ContainerNode {
   // Inline overrides (used when no class assigned)
   container: FlexContainerProps;
   item: FlexItemProps;
+  contentElements: ContentElement[];
 }
 
 // ── Element template ────────────────────────────────────────────────
@@ -74,6 +84,7 @@ export interface ElementTemplate {
   rootContainerId: string;
   layoutClasses: Map<string, LayoutClass>;
   nextContainerId: number;
+  nextContentElementId: number;
 }
 
 // ── App state ───────────────────────────────────────────────────────
@@ -99,6 +110,8 @@ export interface AppEvents {
   selectionChanged: string | null;
   layoutClassChanged: LayoutClass;
   layoutClassRemoved: string;
+  contentElementAdded: { containerId: string; element: ContentElement };
+  contentElementRemoved: { containerId: string; elementId: string };
   treeChanged: void;
 }
 

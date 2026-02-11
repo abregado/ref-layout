@@ -26,9 +26,17 @@ export class ContextMenu {
   }
 
   private handleContextMenu(e: MouseEvent): void {
-    if (this.state.getMode() !== 'layout') return;
+    const mode = this.state.getMode();
+    if (mode === 'preview') return;
 
     e.preventDefault();
+
+    if (mode === 'content') {
+      this.handleContentContextMenu(e);
+      return;
+    }
+
+    // Layout mode
     const target = e.target as HTMLElement;
     const container = target.closest('.flex-container') as HTMLElement | null;
     if (!container || !container.dataset.containerId) return;
@@ -40,10 +48,12 @@ export class ContextMenu {
     if (!node) return;
 
     const isRoot = node.parentId === null;
+    const hasContent = node.contentElements && node.contentElements.length > 0;
 
     const items: MenuItem[] = [
       {
         label: 'Add Child Container',
+        disabled: hasContent,
         action: () => {
           if (this.targetContainerId) {
             this.state.addContainer(this.targetContainerId);
@@ -52,7 +62,7 @@ export class ContextMenu {
       },
       {
         label: 'Add Sibling After',
-        disabled: isRoot,
+        disabled: isRoot || hasContent,
         action: () => {
           if (!this.targetContainerId || isRoot) return;
           const n = this.state.getContainer(this.targetContainerId);
@@ -65,7 +75,7 @@ export class ContextMenu {
       },
       {
         label: 'Add Sibling Before',
-        disabled: isRoot,
+        disabled: isRoot || hasContent,
         action: () => {
           if (!this.targetContainerId || isRoot) return;
           const n = this.state.getContainer(this.targetContainerId);
@@ -88,6 +98,56 @@ export class ContextMenu {
     ];
 
     this.show(e.clientX, e.clientY, items);
+  }
+
+  private handleContentContextMenu(e: MouseEvent): void {
+    const target = e.target as HTMLElement;
+
+    // Check if right-clicked on a content element
+    const contentEl = target.closest('.content-element') as HTMLElement | null;
+    if (contentEl && contentEl.dataset.contentId) {
+      const container = contentEl.closest('.flex-container') as HTMLElement | null;
+      if (!container || !container.dataset.containerId) return;
+
+      const containerId = container.dataset.containerId;
+      const contentId = contentEl.dataset.contentId;
+
+      this.show(e.clientX, e.clientY, [
+        {
+          label: 'Delete Content Element',
+          action: () => {
+            this.state.removeContentElement(containerId, contentId);
+          },
+        },
+      ]);
+      return;
+    }
+
+    // Check if right-clicked on an eligible container (leaf)
+    const container = target.closest('.flex-container.content-eligible') as HTMLElement | null;
+    if (!container || !container.dataset.containerId) return;
+
+    const containerId = container.dataset.containerId;
+    this.state.setSelection(containerId);
+
+    this.show(e.clientX, e.clientY, [
+      {
+        label: 'Add Heading',
+        action: () => this.state.addContentElement(containerId, 'heading'),
+      },
+      {
+        label: 'Add Text',
+        action: () => this.state.addContentElement(containerId, 'text'),
+      },
+      {
+        label: 'Add Table',
+        action: () => this.state.addContentElement(containerId, 'table'),
+      },
+      {
+        label: 'Add List',
+        action: () => this.state.addContentElement(containerId, 'list'),
+      },
+    ]);
   }
 
   private show(x: number, y: number, items: MenuItem[]): void {
